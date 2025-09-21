@@ -1,16 +1,24 @@
 
 # Recommender System 구현
 
-### 1. Download movielens 100k
-```
-mkdir -p recsys/data/movielens
-cd recsys/data/movielnes
-wget http://files.grouplens.org/datasets/movielens/ml-100k/u.data
-wget http://files.grouplens.org/datasets/movielens/ml-100k/u.item
-wget http://files.grouplens.org/datasets/movielens/ml-100k/u.user
-```
+### Data
+MovieLens 100k 이용
 
-### 2. Train matrix factorization
-```
-python -m recsys.models.mf.train
-```
+### Models
+1. MF
+https://arxiv.org/abs/2203.11026
+2. NCF
+https://arxiv.org/abs/1708.05031
+3. FM
+https://www.ismll.uni-hildesheim.de/pub/pdfs/Rendle2010FM.pdf
+4. WD
+https://arxiv.org/abs/1606.07792
+5. DCN
+https://arxiv.org/abs/1708.05123
+6. DeepFM
+https://arxiv.org/abs/1703.04247
+7. DLRM
+https://arxiv.org/abs/1906.00091
+
+### Paper Review
+TODO
