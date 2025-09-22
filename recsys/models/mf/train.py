@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 import argparse
 import numpy as np
 from recsys.data.movielens import MOVIELENS100K
-from recsys.data.utils import leave_one_out_split, random_negative_sampling
+from recsys.data.utils import leave_one_out_split, random_negative_sampling, precision, ndcg
 from recsys.models.mf.model import MF
-from recsys.models.mf.evaluate import precision, ndcg
 
 def get_args():
     parser = argparse.ArgumentParser(description="Matrix Factorization Model Training")
