@@ -85,18 +85,3 @@ class MOVIELENS100K:
             ratings["movie_id"] = ratings["movie_id"].map(movie_to_idx)
         return ratings
     
-
-
-# def save_index(user_to_idx, movie_to_idx, save_dir):
-#     os.makedirs(save_dir, exist_ok=True)
-#     with open(f"{save_dir}/user_to_idx.json", "w") as f:
-#         json.dump(user_to_idx, f)
-#     with open(f"{save_dir}/movie_to_idx.json", "w") as f:
-#         json.dump(movie_to_idx, f)
-
-# def load_index(save_dir):
-#     with open(f"{save_dir}/user_to_idx.json", "r") as f:
-#         user_to_idx = json.load(f)
-#     with open(f"{save_dir}/movie_to_idx.json", "r") as f:
-#         movie_to_idx = json.load(f)
-#     return user_to_idx, movie_to_idx

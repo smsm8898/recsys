@@ -84,19 +84,19 @@ if __name__ == "__main__":
     print(f"Precision@{args.topk}: {_precision:.4f}, NDCG@{args.topk}: {_ndcg:.4f}")
 
     # 저장
-    # model.save(output_path)
+    model.save(output_path)
 
     with open(os.path.join(output_path, f"MF-{args.lr}-{args.k}-{args.num_negative_sample}.json"), "w") as f:
         json.dump(history, f, indent=4)
 
-    # with open(os.path.join(output_path, "recommendations.json"), "w") as f:
-    #     json.dump(rec_list, f)
+    with open(os.path.join(output_path, "recommendations.json"), "w") as f:
+        json.dump(rec_list, f)
 
     # 학습 결과 시각화 (Visualize and save)
-    # plt.plot(history["loss"])
-    # plt.xlabel("Epoch")
-    # plt.ylabel("BCE")
-    # plt.title("MF Train Loss")
-    # plt.tight_layout()
-    # plt.savefig(os.path.join(output_path, "train_loss.png"))
-    # plt.close()
+    plt.plot(history["loss"])
+    plt.xlabel("Epoch")
+    plt.ylabel("BCE")
+    plt.title("MF Train Loss")
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_path, "train_loss.png"))
+    plt.close()
