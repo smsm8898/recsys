@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 import torch
 import argparse
 from tqdm import tqdm
@@ -27,11 +28,11 @@ def get_args():
     parser.add_argument("--data_name", type=str, default="movielens", help="데이터셋 이름")
     parser.add_argument("--random_seed", type=int, default=42, help="랜덤 값 고정")
     parser.add_argument("--k", type=int, default=16, help="잠재 요인(latent factor)의 수")
-    parser.add_argument("--hidden_layers", type=str, default="32,16,8", help="MLP 은닉층 크기 (쉼표로 구분)")
-    parser.add_argument("--epochs", type=int, default=10, help="학습 에포크 수")
+    parser.add_argument("--hidden_layers", type=str, default="32,32,32", help="MLP 은닉층 크기 (쉼표로 구분)")
+    parser.add_argument("--epochs", type=int, default=3, help="학습 에포크 수")
     parser.add_argument("--lr", type=float, default=0.01, help="학습률(Learning Rate)")
     parser.add_argument("--reg", type=float, default=0.01, help="정규화(regularization) 값")
-    parser.add_argument("--batch_size", type=int, default=16, help="배치 사이즈")
+    parser.add_argument("--batch_size", type=int, default=64, help="배치 사이즈")
     parser.add_argument("--num_negative_sample", type=int, default=5, help="부정적 샘플링 수")
     parser.add_argument("--topk", type=int, default=10, help="추천 목록의 상위 K개")
     args = parser.parse_args()
@@ -58,7 +59,8 @@ def main():
     args = get_args()
 
     torch.manual_seed(args.random_seed)
-    # np.random.seed(args.random_seed)
+    np.random.seed = args.random_seed
+    
     hidden_layers = [int(x) for x in args.hidden_layers.split(',')]
 
     history = {
@@ -73,6 +75,8 @@ def main():
         "num_negative_sample": args.num_negative_sample,
         "topk": args.topk,
     }
+    for k, v in history.items():
+        print(k, v)
 
     
     # 데이터 불러오기 & 전처리
@@ -84,12 +88,11 @@ def main():
     ratings, users, movies = movielens.load()
     ratings = movielens.encode_index(ratings, users, movies)
     num_users, num_movies = len(users), len(movies)
-    train, test = leave_one_out_split(ratings, random_state=args.random_seed)
+    train, test = leave_one_out_split(ratings)
     train_with_neg = random_negative_sampling(
         train,
         num_negative_sample=args.num_negative_sample,
         num_items=num_movies,
-        random_state=args.random_seed
     )
     
     # 모델 초기화
@@ -101,8 +104,7 @@ def main():
         lr=args.lr,
         reg=args.reg
     )
-
-    
+    print(model)
     
     # PyTorch DataLoader 설정
     train_dataset = MovielensDataset(train_with_neg)
@@ -111,7 +113,6 @@ def main():
     # 모델 학습
     train_model(model, train_loader, args.epochs, history)
 
-    
      # 추천 평가
     print("추천 평가 시작...")
     user_seen_movies = train.groupby("user_id")["movie_id"].unique()
@@ -121,6 +122,15 @@ def main():
     history[f"precision@{args.topk}"] = _precision
     history[f"ndcg@{args.topk}"] = _ndcg
     print(f"Precision@{args.topk}: {_precision:.4f}, NDCG@{args.topk}: {_ndcg:.4f}")
+
+    # 저장
+    model.save(output_path)
+
+    with open(os.path.join(output_path, "test.json"), "w") as f:
+        json.dump(history, f, indent=4)
+
+    with open(os.path.join(output_path, "recommendations.json"), "w") as f:
+        json.dump(rec_list, f)
 
 if __name__ == "__main__":
     main()
