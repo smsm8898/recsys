@@ -26,6 +26,8 @@ class MLP(torch.nn.Module):
         in_features = 2 * k # Concatenate user and item embeddings
         for out_features in hidden_layers:
             mlp.append(torch.nn.Linear(in_features=in_features, out_features=out_features))
+            mlp.append(torch.nn.ReLU())
+            mlp.append(torch.nn.Dropout(0.2))
             in_features = out_features
         self.mlp = torch.nn.ModuleList(mlp)
 
@@ -55,8 +57,8 @@ class NCF(torch.nn.Module):
         in_features = k + hidden_layers[-1]
         self.classifier = torch.nn.Linear(in_features=in_features, out_features=1)
 
-        criterion = torch.nn.BCEWithLogitsLoss()
-        optimizer = torch.optim.SGD(self.parameters(), lr=lr, weight_decay=reg)
+        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=reg)
 
     def forward(self, uid: torch.LongTensor, iid: torch.LongTensor) -> torch.FloatTensor:
         gmf_out = self.gmf(uid, iid)
@@ -67,7 +69,7 @@ class NCF(torch.nn.Module):
         return logits
     
     def compute_loss(self, uid, iid, label):
-        logits = self.forward(uid, iid).squeeze(1)
+        logits = self.forward(uid, iid) 
         loss = self.criterion(logits, label)
         return loss
     
@@ -81,11 +83,9 @@ class NCF(torch.nn.Module):
     def save(self, save_dir):
         os.makedirs(save_dir, exist_ok=True)
         torch.save(self.state_dict(), os.path.join(save_dir, "model.pt"))
-        # print(f"Model saved to {os.path.join(save_dir, 'model.pt')}")
 
     def load(self, save_dir):
         self.load_state_dict(torch.load(os.path.join(save_dir, "model.pt")))
-        # print("Model loaded successfully.")
     
     def recommend(self, user_seen_items: dict[int, list[int]], topk: int):
         self.eval()
