@@ -81,7 +81,7 @@ def main():
     
     # 데이터 불러오기 & 전처리
     data_path = os.path.join(args.base_path, "data", args.data_name)
-    output_path = os.path.join(args.base_path, "outputs", "ncf", args.data_name)
+    output_path = os.path.join(args.base_path, "outputs", args.data_name, "ncf")
     os.makedirs(output_path, exist_ok=True)
 
     movielens = MOVIELENS100K(path=data_path)
@@ -126,7 +126,7 @@ def main():
     # 저장
     model.save(output_path)
 
-    with open(os.path.join(output_path, "test.json"), "w") as f:
+    with open(os.path.join(output_path, "history.json"), "w") as f:
         json.dump(history, f, indent=4)
 
     with open(os.path.join(output_path, "recommendations.json"), "w") as f:

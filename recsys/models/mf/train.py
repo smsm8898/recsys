@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     # 데이터 불러오기 & 전처리
     data_path = os.path.join(args.base_path, "data", args.data_name)
-    output_path = os.path.join(args.base_path, "outputs", "mf", args.data_name)
+    output_path = os.path.join(args.base_path, "outputs", args.data_name, "mf")
     os.makedirs(output_path, exist_ok=True)
 
     movielens = MOVIELENS100K(path=data_path)
@@ -78,24 +78,15 @@ if __name__ == "__main__":
     rec_list = model.recommend(user_seen_movies, topk=args.topk)
     _precision = precision(recommend=rec_list, test=test)
     _ndcg = ndcg(recommend=rec_list, test=test)
-    history["precision@{args.topk}"] = _precision
-    history["ndcg@{args.topk}"] = _ndcg
+    history[f"precision@{args.topk}"] = _precision
+    history[f"ndcg@{args.topk}"] = _ndcg
     print(f"Precision@{args.topk}: {_precision:.4f}, NDCG@{args.topk}: {_ndcg:.4f}")
 
     # 저장
     model.save(output_path)
 
-    with open(os.path.join(output_path, f"MF-{args.lr}-{args.k}-{args.num_negative_sample}.json"), "w") as f:
+    with open(os.path.join(output_path, "history.json"), "w") as f:
         json.dump(history, f, indent=4)
 
     with open(os.path.join(output_path, "recommendations.json"), "w") as f:
         json.dump(rec_list, f)
-
-    # 학습 결과 시각화 (Visualize and save)
-    plt.plot(history["loss"])
-    plt.xlabel("Epoch")
-    plt.ylabel("BCE")
-    plt.title("MF Train Loss")
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_path, "train_loss.png"))
-    plt.close()
