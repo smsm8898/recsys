@@ -7,7 +7,9 @@ class WideAndDeep(torch.nn.Module):
         num_sparse_features: int,
         num_dense_features: int,
         latent_dim: int,
-        hidden_layers: list[int]
+        hidden_layers: list[int],
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.num_sparse_fields = num_sparse_fields

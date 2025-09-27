@@ -5,7 +5,9 @@ class FactorizationMachine(torch.nn.Module):
         self,
         num_sparse_features: int,
         num_dense_features: int,
-        latent_dim: int
+        latent_dim: int,
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.num_sparse_features = num_sparse_features

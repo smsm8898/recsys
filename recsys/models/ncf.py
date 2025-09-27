@@ -5,7 +5,9 @@ class NeuralCollaborativeFiltering(torch.nn.Module):
         self,
         num_sparse_features: int,
         latent_dim: int,
-        hidden_layers: list[int]
+        hidden_layers: list[int],
+        *args,
+        **kwargs,
     ):
         super().__init__()
         # Embedding

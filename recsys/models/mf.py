@@ -4,7 +4,9 @@ class MatrixFactorization(torch.nn.Module):
     def __init__(
         self,
         num_sparse_features: int,
-        latent_dim: int
+        latent_dim: int,
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.W = torch.nn.Embedding(num_sparse_features, latent_dim)

@@ -9,6 +9,8 @@ class DeepCrossNetwork(torch.nn.Module):
         latent_dim: int,
         num_cross_layers: int,
         hidden_layers: list[int],
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.num_sparse_fields = num_sparse_fields
