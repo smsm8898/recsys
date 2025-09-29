@@ -25,11 +25,15 @@ class DeepCrossNetwork(torch.nn.Module):
         self.W_dense = torch.nn.Linear(num_dense_features, latent_dim)
 
         # Cross Network
-        cross_layers = []
         in_features = (num_sparse_fields + 1) * latent_dim
-        for _ in range(num_cross_layers):
-            cross_layers.append(torch.nn.Linear(in_features, in_features))
-        self.cross_layers = torch.nn.ModuleList(cross_layers)
+        self.cross_kernels = torch.nn.ParameterList([
+            torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty(in_features, in_features)))
+            for _ in range(num_cross_layers)
+        ])
+        self.cross_bias = torch.nn.ParameterList([
+            torch.nn.Parameter(torch.zeros(in_features, 1))
+            for _ in range(num_cross_layers)
+        ])
 
         # Deep Network: MLP(Embedding은 공유)
         mlp = []
@@ -50,10 +54,13 @@ class DeepCrossNetwork(torch.nn.Module):
         x0_dense = self.W_dense(dense_features) # [batch_size, latent_dim]
         x0 = torch.cat([torch.flatten(x0_sparse, 1), x0_dense], dim=1) # [batch_size, (num_sparse_fields + 1) * latent_dim]
 
-        # 2-2. Cross Network
-        cross_out = x0
-        for c in self.cross_layers:
-            cross_out = x0 * c(cross_out) + cross_out
+        # 2. Cross Network
+        x_0 = x0.unsqueeze(2)  # [batch_size, (num_sparse_fields + 1) * latent_dim, 1]
+        x_l = x_0
+        for layer in range(self.num_cross_layers):
+            xl_w = torch.matmul(self.cross_kernels[layer], x_l)  # [batch_size, (num_sparse_fields + 1) * latent_dim, 1]
+            x_l = x_0 * (xl_w + self.cross_bias[layer]) + x_l     # [batch_size, (num_sparse_fields + 1) * latent_dim, 1]
+        cross_out = torch.squeeze(x_l, dim=2)                # [batch_size, (num_sparse_fields + 1) * latent_dim]
 
         # 2-3. Deep Network
         deep_out = x0
