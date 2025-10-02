@@ -1,6 +1,8 @@
-from .mf import MatrixFactorization
-from .ncf import NeuralCollaborativeFiltering
-from .fm import FactorizationMachine
-from .wd import WideAndDeep
+from .mf import MatrixFactorization as MF
+from .ncf import GeneralizedMatrixFactorization as GMF
+from .ncf import NeuralCollaborativeFiltering as NCF
+from .ncf import NeuMF
+from .fm import FactorizationMachine as FM
+from .wd import WideAndDeep as WD
 from .deepfm import DeepFM
-from .dcn import DeepCrossNetwork
+from .dcn import DeepCrossNetwork as DCN

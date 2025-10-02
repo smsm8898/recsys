@@ -1,45 +1,72 @@
 import torch
 
-class NeuralCollaborativeFiltering(torch.nn.Module):
-    def __init__(
-        self,
-        num_sparse_features: int,
-        latent_dim: int,
-        hidden_layers: list[int],
-        *args,
-        **kwargs,
-    ):
+class GeneralizedMatrixFactorization(torch.nn.Module):
+    def __init__(self, num_sparse_features: dict[str, int], latent_dim: int):
         super().__init__()
-        # Embedding
-        self.W_gmf = torch.nn.Embedding(num_sparse_features, latent_dim)
-        self.W_mlp = torch.nn.Embedding(num_sparse_features, latent_dim)
+        self.num_sparse_features = num_sparse_features
+        self.latent_dim = latent_dim
+        self.sparse_feature_names = list(num_sparse_features.keys())
 
-        # MLP Component
+        self.embeddings = torch.nn.ModuleDict({
+            name: torch.nn.Embedding(num_sparse_feature, latent_dim)
+            for name, num_sparse_feature in num_sparse_features.items()
+        })
+
+    def forward(self, sparse_features: dict[str, torch.LongTensor]) -> torch.FloatTensor:
+        emb1 = self.embeddings[self.sparse_feature_names[0]](sparse_features[self.sparse_feature_names[0]]) # [B, D]
+        emb2 = self.embeddings[self.sparse_feature_names[1]](sparse_features[self.sparse_feature_names[1]]) # [B, D]
+
+        # Element-wise Product
+        out = (emb1 * emb2) # [B, D] 
+        return out
+    
+class NeuralCollaborativeFiltering(torch.nn.Module):
+    def __init__(self, num_sparse_features: dict[str, int], latent_dim: int, hidden_layers: list[int]):
+        super().__init__()
+        self.num_sparse_features = num_sparse_features
+        self.latent_dim = latent_dim
+        self.sparse_feature_names = list(num_sparse_features.keys())
+
+        self.embeddings = torch.nn.ModuleDict({
+            name: torch.nn.Embedding(num_sparse_feature, latent_dim)
+            for name, num_sparse_feature in num_sparse_features.items()
+        })
+
+        # MLP layers
         mlp = []
-        in_features = 2 * latent_dim
-        for out_features in hidden_layers:
-            mlp.append(torch.nn.Linear(in_features, out_features))
+        input_dim = 2 * latent_dim
+        for h in hidden_layers:
+            mlp.append(torch.nn.Linear(input_dim, h))
             mlp.append(torch.nn.ReLU())
-            in_features = out_features
-        self.mlp = torch.nn.ModuleList(mlp)
+            input_dim = h
+        self.mlp = torch.nn.Sequential(*mlp)
 
-        # Prediction Layer
-        final_dim = latent_dim + hidden_layers[-1]
+    def forward(self, sparse_features: dict[str, torch.LongTensor]) -> torch.FloatTensor:
+        emb1 = self.embeddings[self.sparse_feature_names[0]](sparse_features[self.sparse_feature_names[0]]) # [B, D]
+        emb2 = self.embeddings[self.sparse_feature_names[1]](sparse_features[self.sparse_feature_names[1]]) # [B, D]
+
+        # Concatenation
+        concat = torch.cat([emb1, emb2], dim=-1) # [B, 2*D]
+        out = self.mlp(concat) # [B, H] H is last-hidden
+        return out
+    
+class NeuMF(torch.nn.Module):
+    def __init__(self, num_sparse_features: dict[str, int], latent_dim: int, hidden_layers: list[int]):
+        super().__init__()
+        self.gmf = GeneralizedMatrixFactorization(num_sparse_features, latent_dim)
+        self.ncf = NeuralCollaborativeFiltering(num_sparse_features, latent_dim, hidden_layers)
+
+
+        # NeuMF Layer
+        final_dim = latent_dim + hidden_layers[-1] # concat of MF and NCF outputs
         self.classifier = torch.nn.Linear(final_dim, 1)
-
-    def forward(self, sparse_features: torch.LongTensor) -> torch.FloatTensor:
-
-        # GMF
-        gmf_embeddings = self.W_gmf(sparse_features) # [batch_size, 2, latent_dim]
-        gmf_out = gmf_embeddings[:, 0, :] * gmf_embeddings[:, 1, :] # [batch_size, latent_dim]
-
-        # MLP
-        mlp_embeddings = self.W_mlp(sparse_features) # [batch_size, 2, latent_dim]
-        # mlp_out = torch.cat([mlp_user_emb, mlp_item_emb], dim=-1)
-        mlp_out = torch.flatten(mlp_embeddings, 1) # [batch_size, 2 * latent_dim]
-        for m in self.mlp:
-            mlp_out = m(mlp_out)
-
-        concat = torch.cat([gmf_out, mlp_out], dim=-1)
+        
+        
+    def forward(self, sparse_features: dict[str, torch.LongTensor]):
+        gmf_out = self.gmf(sparse_features) # [B, D]
+        ncf_out = self.ncf(sparse_features) # [B, H]
+        
+        # concatenate MF latent and NCF hidden representation
+        concat = torch.cat([gmf_out, ncf_out], dim=-1) # [B, (D + H)]
         logits = self.classifier(concat)
         return logits
