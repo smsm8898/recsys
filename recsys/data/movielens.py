@@ -1,43 +1,18 @@
-import os
-import pandas as pd
+import torch
 
+class MovielensDataset(torch.utils.data.Dataset):
+    def __init__(self, data, sparse_feature_names):
+        self.sparse_feature_names = sparse_feature_names
+        self.data = data[:, :-1]
+        self.label = data[:, [-1]].astype(float)
+        
+    def __len__(self):
+        return len(self.data)
 
-_COLUMNS = {
-    "ratings": ["user_id", "item_id", "rating", "timestamp"],
-    "users": ["user_id", "age", "gender", "occupation", "zip"],
-    "items": [
-        "item_id",
-        "title",
-        "release_date",
-        "video_release_date",
-        "imdb_url",
-        "unknown",
-        "action",
-        "adventure",
-        "animation",
-        "children",
-        "comedy",
-        "crime",
-        "documentary", 
-        "drama", 
-        "fantasy",
-        "film-noir",
-        "horror",
-        "musical",
-        "mystery",
-        "romance",
-        "sci-Fi",
-        "thriller",
-        "war",
-        "western",
-    ]
-}
-
-# "http://files.grouplens.org/datasets/movielens/ml-100k"
-def movielens100k(path):
-    # Implicit Feedback
-    feedback = pd.read_csv(os.path.join(path, "u.data"), sep="\t", names=_COLUMNS["ratings"])
-    users = pd.read_csv(os.path.join(path, "u.user"), sep="|", names=_COLUMNS["users"], encoding="latin-1")
-    items = pd.read_csv(os.path.join(path, "u.item"), sep="|", names=_COLUMNS["items"], encoding="latin-1")
-    feedback["label"] = 1
-    return feedback, users, items
+    def __getitem__(self, idx):
+        sparse_featues = {
+            self.sparse_feature_names[0]: self.data[idx, 0],
+            self.sparse_feature_names[1]: self.data[idx, 1],
+        }
+        labels = self.label[idx]
+        return sparse_featues, labels
