@@ -1,6 +1,7 @@
 import torch
 
 class DeepFM(torch.nn.Module):
+    model_name = "deepfm"
     def __init__(
         self,
         num_sparse_fields: int,

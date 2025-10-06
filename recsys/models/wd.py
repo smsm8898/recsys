@@ -1,6 +1,7 @@
 import torch
 
 class WideAndDeep(torch.nn.Module):
+    model_name = "wd"
     def __init__(
         self,
         num_sparse_fields: int,

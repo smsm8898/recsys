@@ -1,6 +1,7 @@
 import torch
 
 class GeneralizedMatrixFactorization(torch.nn.Module):
+    model_name = "gmf"
     def __init__(self, num_sparse_features: dict[str, int], latent_dim: int):
         super().__init__()
         self.num_sparse_features = num_sparse_features
@@ -21,6 +22,7 @@ class GeneralizedMatrixFactorization(torch.nn.Module):
         return out
     
 class NeuralCollaborativeFiltering(torch.nn.Module):
+    model_name = "ncf"
     def __init__(self, num_sparse_features: dict[str, int], latent_dim: int, hidden_layers: list[int]):
         super().__init__()
         self.num_sparse_features = num_sparse_features
@@ -51,6 +53,7 @@ class NeuralCollaborativeFiltering(torch.nn.Module):
         return out
     
 class NeuMF(torch.nn.Module):
+    model_name = "neumf"
     def __init__(self, num_sparse_features: dict[str, int], latent_dim: int, hidden_layers: list[int]):
         super().__init__()
         self.gmf = GeneralizedMatrixFactorization(num_sparse_features, latent_dim)

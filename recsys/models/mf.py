@@ -1,6 +1,7 @@
 import torch
 
 class MatrixFactorization(torch.nn.Module):
+    model_name = "mf"
     def __init__(
         self,
         num_sparse_features: dict[str, int],

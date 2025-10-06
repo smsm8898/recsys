@@ -1,6 +1,7 @@
 import torch
 
 class DeepCrossNetwork(torch.nn.Module):
+    model_name = "dcn"
     def __init__(
         self,
         num_sparse_fields: int,

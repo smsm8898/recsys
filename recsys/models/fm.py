@@ -1,6 +1,7 @@
 import torch
 
 class FactorizationMachine(torch.nn.Module):
+    model_name = "fm"
     def __init__(self, num_sparse_features: dict[str, int], num_dense_features: int, latent_dim: int):
         super().__init__()
         self.num_sparse_features = num_sparse_features
