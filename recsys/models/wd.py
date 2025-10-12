@@ -1,32 +1,48 @@
 import torch
 
 class Wide(torch.nn.Module):
+    # include cross-features
     model_name = "wide"
     def __init__(
         self,
         num_sparse_features: dict[str, int],
-        num_dense_features: int
+        num_dense_features: int,
+        cross_features: list[list[str]],
     ):
         super().__init__()
-        # include cross-features
+        
         self.num_sparse_features = num_sparse_features
         self.sparse_feature_names = list(num_sparse_features.keys())
+        self.num_dense_features = num_dense_features
 
-        # one-hot + dense_features
-        in_features = sum(num_sparse_features.values()) + num_dense_features
-        self.linear_arch = torch.nn.Linear(in_features, 1, bias=False)
+        # cross-features
+        self.cross_features = cross_features
+        for cross_feature in cross_features:
+            cross_feature_name = f"cross_{cross_feature[0]}_{cross_feature[1]}"
+            self.num_sparse_features[cross_feature_name] = self.num_sparse_features[cross_feature[0]] * self.num_sparse_features[cross_feature[1]]
+
+        # one-hot + dense_features -> Embeddings
+        self.sparse_arch = torch.nn.ModuleDict({
+            name: torch.nn.Embedding(vocab_size, 1)
+            for name, vocab_size in self.num_sparse_features.items() 
+        })
+        self.dense_arch = torch.nn.Linear(num_dense_features, 1, bias=False)
+        
 
     def forward(self, sparse_features: dict[str, torch.LongTensor], dense_features: torch.FloatTensor) -> torch.FloatTensor:
-        wide_out = [dense_features]
+        wide_out = self.dense_arch(dense_features) # [B, 1]
         for name in self.sparse_feature_names:
-            wide_out.append(
-                torch.nn.functional.one_hot(sparse_features[name], self.num_sparse_features[name]).float()
-            )
-        wide_out = torch.cat(wide_out, dim=1)
-        wide_out = self.linear_arch(wide_out)
+            wide_out += self.sparse_arch[name](sparse_features[name]) # [B, 1]
+
+        for cross_feature in self.cross_features:
+            cross_feature_name = f"cross_{cross_feature[0]}_{cross_feature[1]}"
+            cross_sparse_features = sparse_features[cross_feature[0]] * self.num_sparse_features[cross_feature[1]] + sparse_features[cross_feature[1]]
+            wide_out += self.sparse_arch[cross_feature_name](cross_sparse_features)
+
         return wide_out
-            
-class Deep(torch.nn.Module):
+    
+class Deep(torch.nn.Module): 
+    # not include cross-features
     model_name = "deep"
     def __init__(
         self,
@@ -36,7 +52,7 @@ class Deep(torch.nn.Module):
         hidden_layers: list[int],
     ):
         super().__init__()
-        # exclude cross-features
+        
         self.num_sparse_features = num_sparse_features
         self.sparse_feature_names = list(num_sparse_features.keys())
         self.F = len(self.sparse_feature_names)
@@ -50,13 +66,13 @@ class Deep(torch.nn.Module):
             name: torch.nn.Embedding(vocab_size, latent_dim)
             for name, vocab_size in num_sparse_features.items() 
         })
-        self.dense_arch = torch.nn.Linear(num_dense_features, latent_dim)
+        self.dense_arch = torch.nn.Linear(num_dense_features, latent_dim, bias=False)
 
         # MLP
         mlp = []
         in_features = (self.F + 1) * latent_dim
         for out_features in hidden_layers:
-            mlp.append(torch.nn.Linear(in_features, out_features))
+            mlp.append(torch.nn.Linear(in_features, out_features, bias=False))
             mlp.append(torch.nn.ReLU())
             in_features = out_features
         if hidden_layers[-1] != 1:
@@ -81,34 +97,37 @@ class WideAndDeep(torch.nn.Module):
         num_dense_features: int, 
         latent_dim: int, 
         hidden_layers: list[int],
-        cross_prefix: str = "cross"
+        # cross_prefix: str = "cross"
+        cross_features:list[list[str]]
     ):
         super().__init__()
         self.num_sparse_features = num_sparse_features
         self.num_dense_features = num_dense_features
         self.latent_dim = latent_dim
         self.hidden_layers = hidden_layers
-        self.cross_prefix = cross_prefix
+        # self.cross_prefix = cross_prefix
+        self.cross_features = cross_features
     
         # Models
-        self.wide = Wide(
-            # include cross features
-            num_sparse_features,
-            num_dense_features
-        )
-        
+        self.bias = torch.nn.Parameter(torch.zeros([1, 1]))
+
         self.deep = Deep(
-            # exclude cross features
-            {k:v for k, v in num_sparse_features.items() if self.cross_prefix not in k},
+            num_sparse_features,
             num_dense_features,
             latent_dim,
-            hidden_layers
+            hidden_layers,
         )
-        self.bias = torch.nn.Parameter(torch.zeros([1, 1]))
+
+        self.wide = Wide(
+            num_sparse_features,
+            num_dense_features,
+            cross_features,
+        )
+        
 
     def forward(self, sparse_features: dict[str, torch.LongTensor], dense_features: torch.FloatTensor) -> torch.FloatTensor:
         wide_out = self.wide(sparse_features, dense_features)
         deep_out = self.deep(sparse_features, dense_features)
-        logits = self.bias + wide_out + deep_out
+        logits = self.bias + deep_out + wide_out
         return logits
         
