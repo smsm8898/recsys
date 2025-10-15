@@ -1,0 +1,26 @@
+data:
+  num_sparse_features: 
+  dense_features: 
+  train: 
+  test: 
+
+training:
+  batch_size: 64
+  lr: 0.001
+  epochs: 10
+  device: "cpu"
+
+models:
+  mf:
+    latent_dim: 16
+  neumf:
+    latent_dim: 16
+    hidden_layers: [32, 32, 32]
+  fm:
+    latent_dim: 16
+  wd:
+    latent_dim: 16
+    hidden_layers: [32, 32, 32]
+    cross_features:
+      - ["gender", "genre"]
+      - ["gender", "occupation"]
