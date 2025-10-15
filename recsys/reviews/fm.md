@@ -38,13 +38,13 @@ ___
 > 실제 transaction과 같은 상황에 만들어지는 피처 벡터
 Factorization Machines에서 사용될 input 데이터 형태
 - Common Prediction Task
-    - Classification$$\quad T = {+, -}$$
-    - Regression $$\quad T = \mathbb{R}$$
-$$
-y \; : \; \mathbb{R}^n \rightarrow T, \quad x \in \mathbb{R}^n \;
-$$
-- $$m(x)$$: feature vector x에서 0이 아닌 숫자
-- $$\overline{m}_D$$: 모든 $$m(x)$$의 평균
+  - Classification 
+    - $\quad T = {+, -}$
+  - Regression 
+    - $\quad T = \mathbb{R}$
+    - $y \; : \; \mathbb{R}^n \rightarrow T, \quad x \in \mathbb{R}^n \;$
+- $m(x)$: feature vector x에서 0이 아닌 숫자
+- $\overline{m}_D$: 모든 $m(x)$의 평균
 
 
 ## 3. Factorization Machines(FM)
@@ -63,10 +63,10 @@ $$
 
 2) Expressiveness
 - 얼마나 다양한 interaction 패턴을 모델링할 수 있는지
-    - $$W$$: pair wise interaction을 표현하는 matrix
-    - $$k$$: latent factor
-    - $$k$$가 충분히 크다면 $$W$$를 근사하거나 똑같이 표현할 수 있다
-    - 하지만 sparse 한 상황에서 $$W$$를 제대로 추정할 데이터가 부족하므로 너무 큰 $$k$$는 overfitting을 유발
+  - $W$: pair wise interaction을 표현하는 matrix
+  - $k$: latent factor
+  - $k$가 충분히 크다면 $W$를 근사하거나 똑같이 표현할 수 있다
+  - 하지만 sparse 한 상황에서 $W$를 제대로 추정할 데이터가 부족하므로 너무 큰 $k$는 overfitting을 유발
 
 3) Parameter Estimation Under Sparsity
 - interaction parameter를 factorization
@@ -74,9 +74,9 @@ $$
     - 직접적인 데이터가 없어도 간접적인 예측이 가능
 
 4) Computation
-- Original$$\quad O(kn^2)$$
-- Reform(linear)$$\quad O(kn)$$
-- 추천시스템에서는 대부분 x가 0이기 때문에 FM의 계산 비용은 $$O(k\overline{m}_D)$$ 
+- Original$\quad O(kn^2)$
+- Reform(linear)$\quad O(kn)$
+- 추천시스템에서는 대부분 x가 0이기 때문에 FM의 계산 비용은 $O(k\overline{m}_D)$
 $$
 \sum^n_{i=1}\sum^n_{j=i+1} <\mathbf{v_i, v_j}> x_i x_j \\
 = \frac{1}{2} \sum^n_{i=1} \sum^n_{j=1} <\mathbf{v_i,v_j}>x_i x_j - \frac{1}{2} \sum^n_{i=1} <\mathbf{v_i,v_j}>x_i x_i \\
@@ -103,8 +103,8 @@ x_i \cdot \sum^n_{j=1} v_{j,f} x_j \;-\; v+{i,f} x^2_i, & \text{if } \theta = v_
 \end{cases}
 $$
 
-#### D. $$d - way$$ Factorization Machines
-- Original: $$O(k_dn^d)$$ but **Linear!**
+#### D. $d - way$ Factorization Machines
+- Original: $O(k_dn^d)$ but **Linear!**
 
 $$
 \hat{y}(x) := w_0 + \sum^n_{i=1}w_ix_i \\

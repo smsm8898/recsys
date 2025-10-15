@@ -60,13 +60,13 @@ ___
     - ex. purchase history, browsing history, search patterns, mouse movements
 #### 2-3. MF 수식
 - Matrix Factorization Model
-Map: 고객과 상품을 **동일한** $$f$$ 차원의 _Latent Space_
+Map: 고객과 상품을 **동일한** $f$ 차원의 _Latent Space_
 Model: user-item interaction를 _inner product_
   $$
   \hat r_{u,i} = q_i^\top p_u \tag{1}
   \quad where \quad  q_i \in \mathbb{R}^f, \quad p_u \in \mathbb{R}^f
   $$
-> $$q_i$$는 item에 대한 latent factor, $$p_u$$는 user에 대한 latent factor
+> $q_i$는 item에 대한 latent factor, $p_u$는 user에 대한 latent factor
 추천 시스템은 이 수식을 이용해 유저가 어떤 아이템에 어떤 점수를 줄지 예상할 수 있다
 - 학습전략
     - 위의 수식 (1)은 SVD와 매우 관련
@@ -78,11 +78,7 @@ $$
 \sum_{(u,i)\in\kappa} \big(r_{ui} - q_i^\top p_u \big)^2
 + \lambda \left( \|q_i\|^2 + \|p_u\|^2\right) \tag{2}
 $$
-where
-  
-$$
-\kappa = \{(u,i)\ |\ r_{ui} \text{ is observed}\}
-$$
+where $\kappa = \{(u,i)\ |\ r_{ui} \text{ is observed}\}$
 
 - **SGD(Stochastoc Gradient Descent)**
 $$
@@ -97,15 +93,15 @@ q_i \leftarrow q_i + \gamma \big( e_{ui} p_u - \lambda q_i \big),
 $$
 
 - **ALS(Alternating least squares)**
-    - 위의 수식에서 $$q_i$$ 와 $$p_u$$ 는 미지수이기 때문에 수렴하지 않을 수 있다
+    - 위의 수식에서 $q_i$ 와 $p_u$ 는 미지수이기 때문에 수렴하지 않을 수 있다
     - 하지만 하나를 고정하면 quadratic하게 해결 가능
     - 돌아가며 하나의 변수를 고정하여 업데이트
     
 - **Adding Biases**
     - 사람마다 평가에 대해 **평균적 성향(경향성)**이 존재
-    - user bias( $$b_u$$ ): 어떤 사용자는 전체적으로 점수를 높게/낮게 주는 경향이 있음
-    - item bias( $$b_i$$ ): 어떤 아이템은 전체적으로 점수가 높게/낮게 매겨지는 경향이 있음
-    - global mean( $$\mu$$ ): 특정 데이터셋의 평균 평점
+    - user bias( $b_u$ ): 어떤 사용자는 전체적으로 점수를 높게/낮게 주는 경향이 있음
+    - item bias( $b_i$ ): 어떤 아이템은 전체적으로 점수가 높게/낮게 매겨지는 경향이 있음
+    - global mean( $\mu$ ): 특정 데이터셋의 평균 평점
 $$
 b_{ui} = \mu + b_u + b_i, \tag{3}
 $$

@@ -33,8 +33,8 @@ ___
     - 추천은 unobserved entries를 추론하는 문제
     - missing value
 - Machine Learning
-    - Pointwise learning:  $$\min (\hat y_{ui} - y_{ui})$$
-    - Pairwise learning:  $$\max (\hat y_{ui} - \hat y_{uj})$$
+    - Pointwise learning:  $\min (\hat y_{ui} - y_{ui})$
+    - Pairwise learning:  $\max (\hat y_{ui} - \hat y_{uj})$
 
 #### 2.2. Matrix Factorization
 - MF는 latent vector의 inner product(Linear model)
@@ -43,9 +43,9 @@ $$
 $$
 ![Figure1](https://velog.velcdn.com/images/smsm8898/post/2f6340ee-27ac-4dcf-909a-aa878fde55eb/image.png)
 > **MF(Inner Product)의 한계**
-(a)를 통해 $$u_4$$는 $$u_1$$, $$u_3$$, $$u_2$$ 순으로 유사
-하지만 latent space(b)에서 $$p_4$$를 $$p_1$$과 가장 가깝게 놓으면
-$$p_4$$가 $$p_3$$보다 $$p_2$$에 더 가까워지고 더 큰 ranking loss 발생
+(a)를 통해 $u_4$는 $u_1$, $u_3$$ $u_2$ 순으로 유사
+하지만 latent space(b)에서 $p_4$를 $p_1$과 가장 가깝게 놓으면
+$p_4$가 $p_3$보다 $p_2$에 더 가까워지고 더 큰 ranking loss 발생
 
 ## 3. Neural Collaborative Filtering
 #### 3.1. General Framework
@@ -62,7 +62,7 @@ $$
 
 ##### 3.1.1 Learning NCF
 - Binary Cross Entropy
-implicit feedback의 특성상 $$y_{ui}=1$$은 u와 i가 연관이 있다(반대는 0)
+implicit feedback의 특성상 $y_{ui}=1$은 u와 i가 연관이 있다(반대는 0)
 $$
 \mathcal{L} = - \sum_{(u,i) \in \mathcal{Y} \cup \mathcal{Y}^-} y_{ui} \log \hat{y}_{ui} + (1 - y_{ui}) \log (1 - \hat{y}_{ui})
 $$
@@ -76,8 +76,8 @@ $$
 $$
 \hat y_{ui} = a_{out} ( \mathbf{h}^T ( \mathbf{p}_u \, \odot \, \mathbf{q}_i ))
 $$
-> 여기서  $$a_{out}$$을 identity function $$h$$를 uniform function을 사용하면 MF와 정확히 동일
-반대로 $$a_{out}$$를 non-linear function 사용하면 더 일반화
+> 여기서  $a_{out}$을 identity function $h$를 uniform function을 사용하면 MF와 정확히 동일
+반대로 $a_{out}$를 non-linear function 사용하면 더 일반화
 
 #### 3.3 Multi-Layer Perceptron(MLP)
 - NCF는 user, item에 대한 2-pathway 모델
@@ -118,10 +118,10 @@ $$
     - Adam
     - batch size - [128, 256, 512, 1024]
     - learning rate - [0.0001, 0.0005, 0.001, 0.005]
-    - $$\alpha = 0.5$$ 
+    - $\alpha = 0.5$
     - Predictive Factor(last hidden layer) - [8, 16, 32, 64]
         - 3 hidden layers
-        - Predictive Factor: 8 = [32 $$\rightarrow$$ 16 $$\rightarrow$$ 8]
+        - Predictive Factor: 8 = [32 $\rightarrow$ 16 $\rightarrow$ 8]
        
 ---
 - **RQ1. NCF는 SOTA 모델의 성능을 능가할까? **
@@ -134,8 +134,11 @@ $$
 ---
 - **RQ2. Negative Sampling을 이용한 logloss 학습**
 ![Figure 6, 7](https://velog.velcdn.com/images/smsm8898/post/0e753737-92aa-4d33-9c74-eed57986f0cb/image.png)
+
 a. 더 많은 interactions가 있을 수록 학습이 잘 됨
+
 b. NeuMF > MLP > GMF
+
 c. 충분한 negative sampling이 필요( > 1)
 
 ---
