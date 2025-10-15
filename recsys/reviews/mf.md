@@ -2,7 +2,9 @@
 
 ___
 ## 1. 추천 시스템
+
 #### 1-1. 추천 시스템의 필요성
+
 - **온라인 시장**이 되면서 유저들이 상품(ex. movies, music, TV shows and etc)을 선택할 수 있는 폭이 굉장히 넓어짐
 - 적절한 상품을 고객에게 연결해주는 것이 서비스에 대한 **만족감과 충성도**를 강화하는 핵심
 
@@ -21,6 +23,7 @@ ___
 > **집단지성!**
 나와 비슷한 사용자는 어떤 상품에 관심을 가졌는가
 시스템 내에서 유저가 상품에 대한 history 데이터를 이용
+
 #### 1-3. CF의 방법론
 - Neighborhood methods
     - 상품 혹은 고객의 관계(Relationship)에 집중한 방법
@@ -66,8 +69,10 @@ Model: user-item interaction를 _inner product_
   \hat r_{u,i} = q_i^\top p_u \tag{1}
   \quad where \quad  q_i \in \mathbb{R}^f, \quad p_u \in \mathbb{R}^f
   $$
+
 > $q_i$는 item에 대한 latent factor, $p_u$는 user에 대한 latent factor
 추천 시스템은 이 수식을 이용해 유저가 어떤 아이템에 어떤 점수를 줄지 예상할 수 있다
+
 - 학습전략
     - 위의 수식 (1)은 SVD와 매우 관련
     - 전통적인 SVD는 missing value가 많은 matrix를 해결할 수 없음 
@@ -78,6 +83,7 @@ $$
 \sum_{(u,i)\in\kappa} \big(r_{ui} - q_i^\top p_u \big)^2
 + \lambda \left( \|q_i\|^2 + \|p_u\|^2\right) \tag{2}
 $$
+
 where $\kappa = \{(u,i)\ |\ r_{ui} \text{ is observed}\}$
 
 - **SGD(Stochastoc Gradient Descent)**
@@ -99,16 +105,17 @@ $$
     
 - **Adding Biases**
     - 사람마다 평가에 대해 **평균적 성향(경향성)**이 존재
-    - user bias( $b_u$ ): 어떤 사용자는 전체적으로 점수를 높게/낮게 주는 경향이 있음
-    - item bias( $b_i$ ): 어떤 아이템은 전체적으로 점수가 높게/낮게 매겨지는 경향이 있음
-    - global mean( $\mu$ ): 특정 데이터셋의 평균 평점
+    - user bias($b_u$): 어떤 사용자는 전체적으로 점수를 높게/낮게 주는 경향이 있음
+    - item bias($b_i$): 어떤 아이템은 전체적으로 점수가 높게/낮게 매겨지는 경향이 있음
+    - global mean($\mu$): 특정 데이터셋의 평균 평점
+
 $$
 b_{ui} = \mu + b_u + b_i, \tag{3}
 $$
+
 $$
 \hat r_{ui} = \mu + b_u + b_i + q_i^\top p_u, \tag{4}
 $$
-
 
 $$
 \min_{p_*, q_*, b_*} 
@@ -118,11 +125,13 @@ $$
 $$
 
 where  
+
 $$
 q_i \in \mathbb{R}^f, \quad p_u \in \mathbb{R}^f, \quad
 b_u, b_i \in \mathbb{R}, \quad
 \kappa = \{(u,i)\ |\ r_{ui} \text{ is observed}\}
 $$
+
 ## 3. 추가적인 입력 데이터
 
 실제 추천 시스템에서는 cold start problem을 해결해야 한다

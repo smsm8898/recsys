@@ -74,9 +74,10 @@ $$
     - 직접적인 데이터가 없어도 간접적인 예측이 가능
 
 4) Computation
-- Original$\quad O(kn^2)$
-- Reform(linear)$\quad O(kn)$
+- Original $\quad O(kn^2)$
+- Reform(linear) $\quad O(kn)$
 - 추천시스템에서는 대부분 x가 0이기 때문에 FM의 계산 비용은 $O(k\overline{m}_D)$
+
 $$
 \sum^n_{i=1}\sum^n_{j=i+1} <\mathbf{v_i, v_j}> x_i x_j \\
 = \frac{1}{2} \sum^n_{i=1} \sum^n_{j=1} <\mathbf{v_i,v_j}>x_i x_j - \frac{1}{2} \sum^n_{i=1} <\mathbf{v_i,v_j}>x_i x_i \\
@@ -92,8 +93,9 @@ $$
 대부분 L2 정규화를 통해 overfitting을 완화
 
 #### C. Learning Factozation Machines
-- SGD를 통해 model의 parameter를 update($$w_0, \mathbf{w}, \mathbf{V}$$)
-- 각각의 gradient는 $$O(1)$$로 계산 가능
+- SGD를 통해 model의 parameter를 update($w_0, \mathbf{w}, \mathbf{V}$)
+- 각각의 gradient는 $O(1)$로 계산 가능
+
 $$
 \frac{\partial}{\partial \theta} \hat{y}(\mathbf{x}) = 
 \begin{cases}
