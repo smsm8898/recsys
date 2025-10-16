@@ -7,9 +7,9 @@ class FM(torch.nn.Module):
         super().__init__()
         
         
-    def forward(self, embeddings):
-        sum_of_square = embeddings.sum(dim=1, keepdim=True).pow(2) # [B, D]
-        squares_of_sum = embeddings.pow(2).sum(dim=1, keepdim=True) # [B, D]
+    def forward(self, embeddings: torch.FloatTensor) -> torch.FloatTensor:
+        sum_of_square = embeddings.sum(dim=1, keepdim=True).pow(2) # [B, 1]
+        squares_of_sum = embeddings.pow(2).sum(dim=1, keepdim=True) # [B, 1]
         fm_out = 0.5 * (sum_of_square - squares_of_sum).sum(dim=1, keepdim=True) # [B, 1]
         return fm_out
         
@@ -36,7 +36,7 @@ class Deep(torch.nn.Module):
             in_features = out_features
         self.mlp = torch.nn.Sequential(*mlp)
 
-    def forward(self, embeddings):
+    def forward(self, embeddings: torch.FloatTensor) -> torch.FloatTensor:
         deep_out = self.mlp(embeddings)
         return deep_out
         
@@ -81,23 +81,23 @@ class DeepFM(torch.nn.Module):
         self.classifier = torch.nn.Linear(in_features, 1)
         
 
-    def forward(self, features):
+    def forward(self, features: dict[str, torch.Tensor]) -> torch.FloatTensor:
         dense_features = torch.stack([features[feature_name] for feature_name in self.dense_feature_names], dim=1)
         dense_features = self.dense_arch(dense_features)
         
-        # common embedded-input
+        # common input: embeddings
         embeddings = [dense_features] # [B, D]
         for feature_name in self.sparse_feature_names:
             embeddings.append(self.sparse_arch[feature_name](features[feature_name]))
         embeddings = torch.cat(embeddings, dim=1) # [B, (F+1) * D]
         
         # FM
-        fm_out = self.fm(embeddings)
+        fm_out = self.fm(embeddings) # [B, 1]
         
         # Deep
-        deep_out = self.deep(embeddings)
+        deep_out = self.deep(embeddings) # [B, H]
 
-        # classifier
-        interactions = torch.cat([dense_features, fm_out, deep_out], dim=1)
+        # Classifier
+        interactions = torch.cat([dense_features, fm_out, deep_out], dim=1) # [B, D+H+1]
         logits = self.classifier(interactions)
         return logits 
