@@ -1,66 +1,103 @@
 import torch
+# 참고 https://github.com/meta-pytorch/torchrec/blob/main/torchrec/modules/deepfm.py
+
+class FM(torch.nn.Module):
+    model_name = "fm"
+    def __init__(self):
+        super().__init__()
+        
+        
+    def forward(self, embeddings):
+        sum_of_square = embeddings.sum(dim=1, keepdim=True).pow(2) # [B, D]
+        squares_of_sum = embeddings.pow(2).sum(dim=1, keepdim=True) # [B, D]
+        fm_out = 0.5 * (sum_of_square - squares_of_sum).sum(dim=1, keepdim=True) # [B, 1]
+        return fm_out
+        
+    
+class Deep(torch.nn.Module):
+    model_name = "deep"
+    def __init__(
+        self,
+        F: int,
+        latent_dim: int, 
+        hidden_layers: list[int],
+    ):
+        super().__init__()
+        self.F = F
+        self.latent_dim = latent_dim
+        self.hidden_layers = hidden_layers
+        
+        # MLP
+        mlp = []
+        in_features = (F + 1) * latent_dim
+        for out_features in hidden_layers:
+            mlp.append(torch.nn.Linear(in_features, out_features, bias=False))
+            mlp.append(torch.nn.ReLU())
+            in_features = out_features
+        self.mlp = torch.nn.Sequential(*mlp)
+
+    def forward(self, embeddings):
+        deep_out = self.mlp(embeddings)
+        return deep_out
+        
 
 class DeepFM(torch.nn.Module):
     model_name = "deepfm"
     def __init__(
         self,
-        num_sparse_fields: int,
-        num_sparse_features: int,
-        num_dense_features: int,
-        latent_dim: int,
+        num_sparse_features: dict[str, int],
+        dense_features: list[str], 
+        latent_dim: int, 
         hidden_layers: list[int],
-        *args,
-        **kwargs,
     ):
         super().__init__()
-        self.num_sparse_fields = num_sparse_fields
         self.num_sparse_features = num_sparse_features
-        self.num_dense_features = num_dense_features
+        self.sparse_feature_names = list(num_sparse_features.keys())
+        self.F = len(self.sparse_feature_names)
+        self.dense_feature_names = dense_features
+        self.num_dense_features = len(dense_features)
         self.latent_dim = latent_dim
         self.hidden_layers = hidden_layers
 
-        # FM Component
-        self.W0 = torch.nn.Parameter(torch.zeros(1))
-        self.W_sparse = torch.nn.Embedding(num_sparse_features, 1)
-        self.W_dense = torch.nn.Linear(num_dense_features, 1)
-        self.V_sparse = torch.nn.Embedding(num_sparse_features, latent_dim)
-        self.V_dense = torch.nn.Linear(num_dense_features, latent_dim, bias=False)
-
-        # Deep: MLP(Embedding은 공유)
-        mlp = []
-        in_features = num_sparse_fields * latent_dim + num_dense_features
-        for out_features in hidden_layers:
-            mlp.append(torch.nn.Linear(in_features, out_features))
-            mlp.append(torch.nn.ReLU())
-            in_features = out_features
-        self.mlp = torch.nn.ModuleList(mlp)
-
-        # Prediction Layer
-        final_dim = 1 + hidden_layers[-1]
-        self.classifier = torch.nn.Linear(final_dim, 1)
-
-    def forward(self, sparse_features: torch.LongTensor, dense_features: torch.FloatTensor) -> torch.FloatTensor:
-        # FM 
-        fm_first_sparse_term = self.W_sparse(sparse_features).sum(dim=1) # [batch_size, 1]
-        fm_first_dense_term = self.W_dense(dense_features) # [batch_size, 1]
-        fm_first_term = fm_first_sparse_term + fm_first_dense_term # [batch_size, 1]
         
-        v_sparse = self.V_sparse(sparse_features) # [batch_size, num_sparse_fields, latent_dim]
-        v_dense = self.V_dense(dense_features).unsqueeze(1) # [batch_size, 1, latent_dim]
-        v = torch.cat([v_sparse, v_dense], dim=1) # [batch_size, num_sparse_fields+1, latent_dim]
-        
-        sum_of_square = v.sum(dim=1).pow(2) # [batch_size, latent_dim]
-        squares_of_sum = v.pow(2).sum(dim=1) # [batch_size, latent_dim]
-        fm_second_term = 0.5 * (sum_of_square - squares_of_sum).sum(dim=1, keepdim=True) # [batch_size, 1]
-        fm_out = self.W0 + fm_first_term + fm_second_term 
+        # Input Embedding(Common)
+        self.sparse_arch = torch.nn.ModuleDict({
+            name: torch.nn.Embedding(vocab_size, latent_dim)
+            for name, vocab_size in num_sparse_features.items() 
+        })
+        self.dense_arch = torch.nn.Linear(self.num_dense_features, latent_dim, bias=False)
 
+        # DeepFM
+        self.deep = Deep(
+            self.F,
+            latent_dim,
+            hidden_layers,
+        )
+        self.fm = FM()
+
+        # Classifier(dense_feature + fm_out + deep_out)
+        ### dense_features는 1st order interaction(addition unit)
+        in_features = latent_dim + hidden_layers[-1] + 1
+        self.classifier = torch.nn.Linear(in_features, 1)
+        
+
+    def forward(self, features):
+        dense_features = torch.stack([features[feature_name] for feature_name in self.dense_feature_names], dim=1)
+        dense_features = self.dense_arch(dense_features)
+        
+        # common embedded-input
+        embeddings = [dense_features] # [B, D]
+        for feature_name in self.sparse_feature_names:
+            embeddings.append(self.sparse_arch[feature_name](features[feature_name]))
+        embeddings = torch.cat(embeddings, dim=1) # [B, (F+1) * D]
+        
+        # FM
+        fm_out = self.fm(embeddings)
+        
         # Deep
-        deep_out = torch.flatten(v_sparse, 1) # [batch_size, num_fields * latent_dim]
-        deep_out = torch.cat([deep_out, dense_features], dim=1) # [batch_size, num_fields * latent_dim + num_dense_features]
-        for m in self.mlp:
-            deep_out = m(deep_out)
-        
-        # Final
-        concat = torch.cat([fm_out, deep_out], dim=-1)
-        logits = self.classifier(concat)
-        return logits
+        deep_out = self.deep(embeddings)
+
+        # classifier
+        interactions = torch.cat([dense_features, fm_out, deep_out], dim=1)
+        logits = self.classifier(interactions)
+        return logits 
