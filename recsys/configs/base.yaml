@@ -1,6 +1,7 @@
 data:
-  num_sparse_features: 
+  num_sparse_features:
   dense_features: 
+  experiment_group:
   train: 
   test: 
 
@@ -8,7 +9,7 @@ training:
   batch_size: 64
   lr: 0.001
   epochs: 10
-  device: "cpu"
+  device: "mps"
 
 models:
   mf:
@@ -24,3 +25,9 @@ models:
     cross_features:
       - ["gender", "genre"]
       - ["gender", "occupation"]
+  deepfm:
+    latent_dim: 16
+    hidden_layers: [32, 32, 32]
+    dropout: 0.2
+
+  
