@@ -63,15 +63,16 @@ class DeepCrossNetwork(torch.nn.Module):
         x0 = torch.cat(x0, dim=1) # [B, (F+1) * D]
         
 
-        # 2. Cross Network
+        # 2-1. Cross Network
         x_0 = x0.unsqueeze(2)  # [B, (F + 1) * D, 1]
         x_l = x_0
         for layer in range(self.num_cross_layers):
+            # 여기서 w도 [1, D, D]로 자동 확장 -> x_l과 연산
             xl_w = torch.matmul(self.cross_network["w"][layer], x_l)  # [B, (F + 1) * D, 1]
             x_l = x_0 * (xl_w + self.cross_network["b"][layer]) + x_l
         cross_out = torch.squeeze(x_l, dim=2)
 
-        # 2-3. Deep Network
+        # 2-2. Deep Network
         deep_out = x0
         for m in self.mlp:
             deep_out = m(deep_out)
