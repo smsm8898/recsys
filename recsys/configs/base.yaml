@@ -28,5 +28,9 @@ models:
   deepfm:
     latent_dim: 16
     hidden_layers: [32, 32, 32]
+  dcn:
+    latent_dim: 16
+    hidden_layers: [32, 32, 32]
+    num_cross_layers: 3
 
   
