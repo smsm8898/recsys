@@ -28,6 +28,5 @@ models:
   deepfm:
     latent_dim: 16
     hidden_layers: [32, 32, 32]
-    dropout: 0.2
 
   

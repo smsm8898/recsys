@@ -9,7 +9,6 @@ class DeepFM(torch.nn.Module):
         dense_features: list[str], 
         latent_dim: int, 
         hidden_layers: list[int],
-        dropout: float,
     ):
         super().__init__()
         self.num_sparse_features = num_sparse_features
@@ -19,7 +18,6 @@ class DeepFM(torch.nn.Module):
         self.num_dense_features = len(dense_features)
         self.latent_dim = latent_dim
         self.hidden_layers = hidden_layers
-        self.dropout = dropout
 
         # global bias
         self.bias = torch.nn.Parameter(torch.zeros(1, 1))
@@ -44,7 +42,6 @@ class DeepFM(torch.nn.Module):
         for out_features in hidden_layers:
             mlp.append(torch.nn.Linear(in_features, out_features, bias=False))
             mlp.append(torch.nn.ReLU())
-            mlp.append(torch.nn.Dropout(dropout)) # experiment에 존재
             in_features = out_features
         if hidden_layers[-1] != -1:
             mlp.append(torch.nn.Linear(in_features, 1, bias=False))
