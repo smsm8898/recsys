@@ -77,7 +77,7 @@ class DeepCrossNetwork(torch.nn.Module):
         for m in self.mlp:
             deep_out = m(deep_out)
 
-        # 2-4. Combination output layer
+        # 3. Combination output layer
         concat = torch.cat([cross_out, deep_out], dim=-1)
         logits = self.classifier(concat)
         return logits
