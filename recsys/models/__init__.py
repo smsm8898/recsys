@@ -6,3 +6,4 @@ from .fm import FactorizationMachine as FM
 from .wd import WideAndDeep as WD
 from .deepfm import DeepFM
 from .dcn import DeepCrossNetwork as DCN
+from .dlrm import DeepLearningRecommenderModel as DLRM
