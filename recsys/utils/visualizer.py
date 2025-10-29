@@ -42,5 +42,6 @@ def plot_metrics(results):
     fig.supxlabel("K")
     fig.suptitle(f"{len(models)} Models Ranking Metrics")
     fig.tight_layout()
+    plt.savefig(f"{len(models)} Models Ranking Metrics")
     plt.show()
     plt.close()
