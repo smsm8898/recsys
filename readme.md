@@ -1,5 +1,6 @@
 # Recsys
-Pytorch Implementation of state-of-the-arts Recommenders
+- Implementation of state-of-the-arts Recommenders
+- Compare 7 other Models in the same settings
 
 ## Prerequisites
 - Python >= 3.9
@@ -24,6 +25,17 @@ wget https://files.grouplens.org/datasets/movielens/ml-100k/u.data
 wget https://files.grouplens.org/datasets/movielens/ml-100k/u.item
 wget https://files.grouplens.org/datasets/movielens/ml-100k/u.user
 ```
+
+## Comparison Results
+Before run the `main.py`, check the `config.yaml`
+```python
+python -m src.main.py
+```
+- 7 Model Train Metrics Comparison
+![alt text](<7 Models Train Metrics.png>)
+
+- 7 Model Ranking Metrics Comparison
+![alt text](image.png)
 
 ## Project Resources
 | 논문명 | 리뷰 | 모델 | 학습 |
